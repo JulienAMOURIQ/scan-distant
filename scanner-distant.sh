@@ -44,6 +44,19 @@ chargerconfig(){
 	echo $PRET
 }
 
+trouvernomsortie(){
+    local i=0
+    local base=$1
+    local nom=$base"_"$i
+    while ( [ -f $nom".tiff" ] )
+    do
+        i=$(($i+1))
+        nom=$base"_"$i
+    done
+    echo $nom
+}
+
+
 res=$(chargerconfig)
 if [ $res -ne 0 ] ;then
 	echo "ERREUR : fichier numeriser.cfg incomplet"
@@ -51,6 +64,13 @@ if [ $res -ne 0 ] ;then
 	exit 2
 fi
 
+pv -V
+if [ "$?" != "0" ]; then
+	echo "pv introuvable"
+	exit 1
+fi
+
+NOM_SORTIE=$(trouvernomsortie $NOM_SORTIE )
 echo $NOM_SORTIE
 
 #MENU 1
@@ -66,6 +86,7 @@ if [ "$1" != "-nodialog" ] ; then
 		MODE="Gray"
 	fi
 fi
+
 
 
 
@@ -106,7 +127,7 @@ if [ $RESOLUTION -eq 2400 ];then
 fi
 
 if [ "$1" != "-nodialog" ] ; then 
-	ssh "$UTILISATEUR@$HOTE" "scanimage --format=$FORMAT --resolution=$RESOLUTION --mode=$MODE" | pv -n -s $TAILLE 2>&1 > "$NOM_SORTIE.$FORMAT"  | dialog --gauge "Numérisation en cours..." 12 50
+	ssh "$UTILISATEUR@$HOTE" "sudo scanimage --format=$FORMAT --resolution=$RESOLUTION --mode=$MODE" | pv -n -s $TAILLE 2>&1 > "$NOM_SORTIE.$FORMAT"  | dialog --gauge "Numérisation en cours..." 12 50
 else
-	ssh "$UTILISATEUR@$HOTE" "scanimage --format=$FORMAT --resolution=$RESOLUTION --mode=$MODE" | pv -s $TAILLE 2>&1> "$NOM_SORTIE.$FORMAT"
+	ssh "$UTILISATEUR@$HOTE" "sudo scanimage --format=$FORMAT --resolution=$RESOLUTION --mode=$MODE" | pv -s $TAILLE 2>&1> "$NOM_SORTIE.$FORMAT"
 fi
